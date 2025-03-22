@@ -1,0 +1,33 @@
+# Core LLM Orchestration
+llama-index>=0.10.0
+langchain>=0.1.13
+
+# Embeddings + Vector DB
+sentence-transformers
+faiss-cpu  # or faiss-gpu if you’re on a GPU setup
+
+# Document Loaders
+pymupdf  # for PDFs
+beautifulsoup4  # for HTML
+python-docx
+markdown
+html2text
+
+# Utilities
+tqdm
+requests
+numpy
+pandas
+
+# Fast API (optional for backend endpoint)
+fastapi
+uvicorn
+
+# Optional UI
+streamlit
+gradio
+
+# Open Source Model Support (if integrating local models directly)
+transformers
+accelerate
+torch
