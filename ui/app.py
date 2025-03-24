@@ -12,6 +12,8 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).markdown(msg["content"])
 
+model = st.selectbox("Choose a model", ["mistral", "llama3", "tinyllama"], index=0)
+
 # Input box
 if prompt := st.chat_input("Ask anything..."):
     # Display user message
@@ -22,7 +24,7 @@ if prompt := st.chat_input("Ask anything..."):
     try:
         res = requests.post(
             "http://localhost:8000/chat",
-            json={"prompt": prompt, "model": "mistral"},
+            json={"prompt": prompt, "model": model},
             timeout=30
         )
         ai_msg = res.json()["response"]
