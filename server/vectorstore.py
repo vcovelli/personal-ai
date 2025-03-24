@@ -14,9 +14,10 @@ class VectorStore:
         embeddings = model.encode(docs)
         self.index.add(np.array(embeddings).astype("float32"))
 
-    def query(self, prompt: str, top_k=3) -> list[str]:
-        embedding = model.encode([prompt])
-        D, I = self.index.search(np.array(embedding).astype("float32"), top_k)
-        return [self.texts[i] for i in I[0]]
+    def query(self, query: str, k: int = 3):
+        if not self.texts:
+            return ["⚠️ No documents available."]
+        D, I = self.index.search(self.embed(query), k)
+        return [self.texts[i] for i in I[0] if i < len(self.texts)]
 
 vector_store = VectorStore()
