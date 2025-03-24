@@ -4,6 +4,15 @@ import requests
 st.set_page_config(page_title="Local AI Assistant", layout="wide")
 st.title("🧠 Local AI Assistant")
 
+# File upload section
+uploaded_file = st.file_uploader("📄 Upload a file", type=["txt", "md", "py", "pdf"])
+if uploaded_file:
+    res = requests.post(
+        "http://localhost:8000/upload",
+        files={"file": uploaded_file.getvalue()},
+    )
+    st.success(f"✅ Uploaded: {uploaded_file.name}")
+
 # Session state for chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
