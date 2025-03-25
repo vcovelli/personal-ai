@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from PyPDF2 import PdfReader
 
 from config import DEFAULT_MODEL
 from server.ollama_client import query_ollama
@@ -22,7 +24,7 @@ def health():
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
-    response = query_ollama(request.prompt, request.model)
+    response = query_ollama(request.prompt, request.model, dev=True)
     return {"response": response}
 
 @app.post("/add-docs")
@@ -45,7 +47,7 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": f"Could not read file: {str(e)}"})
 
-    vector_store.add_text(content)
+    vector_store.add_text(content, source=filename)
     return {"status": "uploaded", "filename": filename}
 
 @app.post("/search")
