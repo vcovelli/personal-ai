@@ -31,11 +31,12 @@ if prompt := st.chat_input("Ask anything..."):
 
     # Send to FastAPI on desktop
     try:
-        res = requests.post(
-            "http://localhost:8000/chat",
-            json={"prompt": prompt, "model": model},
-            timeout=30
-        )
+        with st.spinner("💭 Thinking..."):
+            res = requests.post(
+                "http://localhost:8000/chat",
+                json={"prompt": prompt, "model": model},
+                timeout=90
+            )
         ai_msg = res.json()["response"]
     except Exception as e:
         ai_msg = f"⚠️ Error: {e}"
