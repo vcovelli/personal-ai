@@ -1,4 +1,8 @@
+# Environment Variables
 .env
+
+# Virtual Environment
+ai-venv/
 
 # Byte-compiled / cache
 __pycache__/
