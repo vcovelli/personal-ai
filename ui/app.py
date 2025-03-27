@@ -9,7 +9,7 @@ uploaded_file = st.file_uploader("📄 Upload a file", type=["txt", "md", "py", 
 if uploaded_file:
     res = requests.post(
         "http://localhost:8000/upload",
-        files={"file": uploaded_file.getvalue()},
+        files={"file": (uploaded_file.name, uploaded_file.getvalue())},
     )
     st.success(f"✅ Uploaded: {uploaded_file.name}")
 
