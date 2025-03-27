@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+import re
 
 model = SentenceTransformer("all-mpnet-base-v2")  # Embedding Model
 
@@ -12,9 +13,41 @@ class VectorStore:
 
     def smart_chunk(self, text: str, chunk_size=500, overlap=100) -> list[str]:
         chunks = []
-        for i in range(0, len(text), chunk_size - overlap):
-            chunks.append(text[i:i + chunk_size])
+        current_section = "General"
+        buffer = ""
+
+        def is_heading(line):
+            stripped = line.strip()
+            return (
+                stripped.startswith("*") or
+                stripped.endswith(":") or
+                (stripped.isupper() and len(stripped.split()) <= 6)
+            )
+
+        lines = text.splitlines()
+
+        for line in lines:
+            # If line looks like a heading, store it
+            if is_heading(line):
+                current_section = re.sub(r"[*:]", "", line.strip()).strip()
+
+            buffer += line + "\n"
+
+            if len(buffer) >= chunk_size:
+                if current_section:
+                    labeled = f"SECTION: {current_section}\n" + buffer
+                else:
+                    labeled = buffer
+                chunks.append(labeled.strip())
+                buffer = buffer[-overlap:]
+
+        if buffer.strip():
+            if current_section:
+                buffer = f"SECTION: {current_section}\n" + buffer
+            chunks.append(buffer.strip())
+
         return chunks
+
 
     def embed(self, texts: list[str]):
         return model.encode(texts).astype("float32")
@@ -32,12 +65,12 @@ class VectorStore:
         embeddings = self.embed(docs)
         self.index.add(embeddings)
 
-    def query(self, query: str, k: int = 3):
+    def query(self, query: str, k: int = 5):
         if not self.texts:
             return ["I don't know. No documents were uploaded or available."]
 
         D, I = self.index.search(self.embed([query]), k)
-        if all(i == -1 or D[0][idx] > 1.0 for idx, i in enumerate(I[0])):
+        if all(i == -1 or D[0][idx] > 1.5 for idx, i in enumerate(I[0])):
             return ["⚠️ I couldn't find anything relevant in the context."]
 
         seen_chunks = set()
@@ -45,7 +78,7 @@ class VectorStore:
         for i in I[0]:
             if i < len(self.texts):
                 chunk = self.texts[i]
-                if chunk not in seen_chunks:
+                if chunk not in seen_chunks and any(kw in chunk.lower() for kw in query.lower().split()):
                     seen_chunks.add(chunk)
                     source = self.metadata[i].get("source", "unknown")
                     results.append(f"[Source: {source}]\n{chunk}")
